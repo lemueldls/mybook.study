@@ -2007,25 +2007,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"book.study@workspace:.":
-  version: 0.0.0-use.local
-  resolution: "book.study@workspace:."
-  dependencies:
-    "@types/react": "npm:^18.2.15"
-    "@types/react-dom": "npm:^18.2.7"
-    "@vitejs/plugin-react-swc": "npm:^3.3.2"
-    eslint: "npm:^8.45.0"
-    eslint-plugin-react: "npm:^7.32.2"
-    eslint-plugin-react-hooks: "npm:^4.6.0"
-    eslint-plugin-react-refresh: "npm:^0.4.3"
-    firebase: "npm:^10.5.2"
-    firebase-tools: "npm:^12.8.0"
-    react: "npm:^18.2.0"
-    react-dom: "npm:^18.2.0"
-    vite: "npm:^4.4.5"
-  languageName: unknown
-  linkType: soft
-
 "boxen@npm:^5.0.0":
   version: 5.1.2
   resolution: "boxen@npm:5.1.2"
@@ -6014,6 +5995,25 @@ __metadata:
   checksum: 18d06d92e5d6d45e2b63c0e1b8f25376af71748ac36f53c059baa8b76ffac31c5ab225480494e7d35d30215ecdb18fed26ec23cafcd2f7733f2f14406bcd19e2
   languageName: node
   linkType: hard
+
+"my-book-study@workspace:.":
+  version: 0.0.0-use.local
+  resolution: "my-book-study@workspace:."
+  dependencies:
+    "@types/react": "npm:^18.2.15"
+    "@types/react-dom": "npm:^18.2.7"
+    "@vitejs/plugin-react-swc": "npm:^3.3.2"
+    eslint: "npm:^8.45.0"
+    eslint-plugin-react: "npm:^7.32.2"
+    eslint-plugin-react-hooks: "npm:^4.6.0"
+    eslint-plugin-react-refresh: "npm:^0.4.3"
+    firebase: "npm:^10.5.2"
+    firebase-tools: "npm:^12.8.0"
+    react: "npm:^18.2.0"
+    react-dom: "npm:^18.2.0"
+    vite: "npm:^4.4.5"
+  languageName: unknown
+  linkType: soft
 
 "nan@npm:^2.18.0":
   version: 2.18.0
