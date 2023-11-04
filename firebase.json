@@ -1,14 +1,23 @@
 {
-  "functions": {
-    "source": "functions"
-  },
+  "$scheme": "https://raw.githubusercontent.com/firebase/firebase-tools/master/schema/firebase-config.json",
   "emulators": {
-    "functions": {
-      "port": 5001
-    },
-    "ui": {
-      "enabled": true
-    },
-    "singleProjectMode": true
+    "singleProjectMode": true,
+    "ui": { "port": 3001 },
+    "auth": { "port": 3002 },
+    "functions": { "port": 3003 },
+    "database": { "port": 3004 },
+    "storage": { "port": 3005 }
+  },
+  "functions": {
+    "runtime": "python311",
+    "source": "firebase/functions",
+    "ignore": ["venv", "__pycache__"]
+  },
+  "database": { "rules": "firebase/database.rules.json" },
+  "storage": { "rules": "firebase/storage.rules" },
+  "hosting": {
+    "public": "dist",
+    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+    "rewrites": [{ "source": "**", "destination": "/index.html" }]
   }
 }
