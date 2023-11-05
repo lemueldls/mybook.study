@@ -5,6 +5,7 @@ from pathlib import Path
 
 import pypdfium2
 import torch
+import openai
 from firebase_admin import db, initialize_app, os, storage, auth
 from firebase_functions import storage_fn, https_fn,options
 from nougat import NougatModel
@@ -24,7 +25,9 @@ from dotenv import load_dotenv, dotenv_values
 
 load_dotenv()
 
+
 ID = os.getenv("WOLFRAM_ID")
+openai.api_key = os.getenv("OPENAI_API_KEY")
 
 dirname = os.path.dirname(__file__)
 checkpoint = os.path.join(dirname, "checkpoint")
@@ -156,6 +159,24 @@ def process_file(file: io.BytesIO, parent: Path):
             str(parent / "pages" / ("%02d.mmd" % (page_num + 1)))).upload_from_string(predictions[idx],
             content_type="text/markdown"
         )
+        problems_questions = questionAI(predictions[idx])
+        questions_save = problems_questions['questions']
+        flashcard_save = problems_questions['flashcards']
+        for i,question in enumerate(questions_save):
+          answer= wolfImage(question)
+          bucket.blob(
+            str(parent / "pages" / ("%02d.mmd" % (page_num + 1))/'questions'/i/)).upload_from_string(question,
+            content_type="text/markdown"
+          )
+          bucket.blob(
+            str(parent / "pages" / ("%02d.mmd" % (page_num + 1))/'questions')/i/).upload_from_string(answer,
+            content_type="image/png"
+           )
+        bucket.blob(
+            str(parent / "pages" / ("%02d.mmd" % (page_num + 1))/'flashcards')).upload_from_string(flashcard_save,
+            content_type="text/markdown"
+        )
+
 
     final = "".join(predictions).strip()
     bucket.blob(str(parent / "doc.mmd")).upload_from_string(final, content_type="text/markdown")
@@ -181,6 +202,32 @@ def wolfSteps(question:str):
     encoded_url = quote(url)
     req = requests.get("http://api.wolframalpha.com/v2/query?appid=" + ID + "&i=" + encoded_url)
     return req.raw
+
+def questionAI(markdown: str):
+    results = dict()
+    messages = [{"role": "user", "content": f"Please generate exactly five questions in the format 'Q: [Question]' and exactly three flashcards in the format 'F: [Flashcard]' for the following excerpt: {markdown}"}]
+
+    response = openai.ChatCompletion.create(
+        model="gpt-3.5-turbo-0613",
+        messages=messages
+    )
+    
+    response_message = response["choices"][0]["message"]["content"]
+    print("Raw Response:", response_message)
+
+    questions = [line.replace('Q: ', '', 1) for line in response_message.split('\n') if line.startswith('Q:')]
+    flashcards = [line.replace('F: ', '', 1) for line in response_message.split('\n') if line.startswith('F:')]
+
+    results = {
+        'questions': questions,
+        'flashcards': flashcards
+    }
+
+    return results
+    
+markdown_excerpt = "Python is an interpreted, high-level, general-purpose programming language. Created by Guido van Rossum and first released in 1991, Python's design philosophy emphasizes code readability with its notable use of significant whitespace."
+print(questionAI(markdown_excerpt))
+
 
 def emailReminder(user_email:str) -> None:
     email_sender = "mybooktech0@gmail.com"
