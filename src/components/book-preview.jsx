@@ -7,14 +7,6 @@ import { ref, getBytes } from "firebase/storage";
 import { Card, Image, Typography } from "antd";
 import { ProCard, ProDescriptions } from "@ant-design/pro-components";
 
-BookPreview.propTypes = {
-  book: PropTypes.shape({
-    hash: PropTypes.string.isRequired,
-    title: PropTypes.string.isRequired,
-    thumb: PropTypes.string.isRequired
-  }).isRequired
-};
-
 export default function BookPreview({ book }) {
   const [html, setHtml] = useState();
 
