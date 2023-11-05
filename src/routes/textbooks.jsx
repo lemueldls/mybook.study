@@ -1,25 +1,23 @@
 import { useEffect, useState } from "react";
 
-import { auth, storage } from "../firebase";
+import { auth, functions, storage } from "../firebase";
 import {
   ref,
   list,
   getDownloadURL,
   uploadBytesResumable
 } from "firebase/storage";
+import { httpsCallable } from "firebase/functions";
 
 import {
   theme,
   notification,
   Card,
   Image,
-  Layout,
   Tooltip,
-  Typography,
   Upload,
   Spin,
-  Input,
-  Space
+  Input
 } from "antd";
 import { BookTwoTone } from "@ant-design/icons";
 
@@ -47,7 +45,7 @@ export default function TextbooksPage() {
     }
 
     fetchBooks().then(setBooks);
-  }, [storage]);
+  }, []);
 
   async function upload({ file, onProgress, onSuccess, onError }) {
     const buffer = await crypto.subtle.digest(
@@ -70,13 +68,16 @@ export default function TextbooksPage() {
         onProgress({ percent });
       },
       error: onError,
-      complete() {
+      async complete() {
         notificationApi.success({
           message: "Upload complete",
           description: "Your textbook will be available in nine minutes."
         });
 
         onSuccess();
+
+        const tokenize = httpsCallable(functions, "tokenize");
+        await tokenize(hash);
       }
     });
   }

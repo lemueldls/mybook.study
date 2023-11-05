@@ -8,14 +8,13 @@ import { getStorage, connectStorageEmulator } from "firebase/storage";
 import { emulators } from "../firebase.json";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyADqGU1uUnrEwTz3jpWSttZpubXZOse0mk",
-  authDomain: "edtech-18363.firebaseapp.com",
-  databaseURL: "https://edtech-18363-default-rtdb.firebaseio.com",
-  projectId: "edtech-18363",
-  storageBucket: "edtech-18363.appspot.com",
-  messagingSenderId: "872149031968",
-  appId: "1:872149031968:web:df32ba0e10941d0d153045",
-  measurementId: "G-GQW3W55LGJ"
+  apiKey: "AIzaSyBfv7fQdHmGDc0tx1u19I3o9_b5SjnBTWU",
+  authDomain: "my-book-study.firebaseapp.com",
+  databaseURL: "https://my-book-study-default-rtdb.firebaseio.com",
+  projectId: "my-book-study",
+  storageBucket: "my-book-study.appspot.com",
+  messagingSenderId: "37977634356",
+  appId: "1:37977634356:web:39cb39b22fecfdb00e7c61"
 };
 
 initializeApp(firebaseConfig);

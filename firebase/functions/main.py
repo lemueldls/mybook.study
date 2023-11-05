@@ -7,7 +7,7 @@ import pypdfium2
 import torch
 import openai
 from firebase_admin import db, initialize_app, os, storage, auth
-from firebase_functions import storage_fn, https_fn,options
+from firebase_functions import https_fn, options
 from nougat import NougatModel
 from nougat.dataset.rasterize import rasterize_paper
 from nougat.postprocessing import markdown_compatible
@@ -21,10 +21,9 @@ import smtplib
 import ssl
 from email.message import EmailMessage
 from urllib.parse import quote
-from dotenv import load_dotenv, dotenv_values
+from dotenv import load_dotenv
 
 load_dotenv()
-
 
 ID = os.getenv("WOLFRAM_ID")
 openai.api_key = os.getenv("OPENAI_API_KEY")
@@ -46,30 +45,105 @@ app = initialize_app()
 bucket = storage.bucket()
 
 
-@https_fn.on_request(cors=options.CorsOptions(cors_origins="*",cors_methods="post"), timeout_sec=3600)
-def upload(req: https_fn.Request) -> https_fn.Response:
-    return https_fn.Response(process_file(req.files['file']))
+def req_user(req):
+    token = req.headers.get("Authorization", "").split(" ")[-1]
 
-@storage_fn.on_object_finalized(timeout_sec=540)
-def tokenize(event: storage_fn.CloudEvent[storage_fn.StorageObjectData]) -> None:
-    name = event.data.name
-    path = Path(name)
-    uid = path.parts[2]
-    useremail = auth.get_user(uid)
-    if uid is not None and name.startswith(f"textbooks/users/{uid}/") and name.endswith("/doc.pdf"):
-        blob = bucket.blob(event.data.name)
-        file = io.BytesIO()
-        blob.download_to_file(file)
-        file.seek(0)
+    return auth.verify_id_token(token)
 
-        process_file(file, path.parent)
 
-        db.reference(f"users/{uid}/textbooks").push({
-            "name": path.parent.name,
-            "path": str(path.parent),
-            "timestamp": event.data.updated,
-        })
-        emailReminder(useremail)
+@https_fn.on_request(cors=options.CorsOptions(cors_origins="*", cors_methods=["get", "post"]), timeout_sec=3600)
+def tokenize(req: https_fn.Request) -> https_fn.Response:
+    user = req_user(req)
+    hash = req.get_json()["data"]
+
+    if not user or not hash:
+        return https_fn.Response({}, status=413)
+
+    name = f"textbooks/users/{user['uid']}/{hash}/doc.pdf"
+    parent = Path(name).parent
+
+    blob = bucket.blob(name)
+    file = io.BytesIO()
+    blob.download_to_file(file)
+    file.seek(0)
+
+    process_file(file, parent)
+
+    db.reference(f"users/{user['uid']}/textbooks").push(
+        {
+            "name": parent.name,
+            "path": str(parent),
+            "timestamp": db.ServerValue.TIMESTAMP,
+        }
+    )
+
+    sendTokenizedEmail(user["email"])
+
+    return https_fn.Response({})
+
+
+def wolfImage(question: str):
+    url = question
+    encoded_url = quote(url)
+    req = requests.get("http://api.wolframalpha.com/v1/simple?appid=" + ID + "&i=" + encoded_url)
+
+    if req.status_code != 200:
+        return wolfShort(question)
+
+    img = Image.open(io.BytesIO(req.content))
+    # img.show()
+
+    return img
+
+
+def wolfShort(question: str):
+    url = question
+    encoded_url = quote(url)
+    req = requests.get("http://api.wolframalpha.com/v1/result?appid=" + ID + "&i=" + encoded_url)
+
+    if req.status_code != 200:
+        return wolfSteps(question)
+
+    return req.text
+
+
+def wolfSteps(question: str):
+    url = question
+    encoded_url = quote(url)
+    req = requests.get("http://api.wolframalpha.com/v2/query?appid=" + ID + "&i=" + encoded_url)
+
+    if req.status_code != 200:
+        # TODO: Use OpenAI to generate a response
+        return "Error"
+
+    return req.text
+
+
+def questionAI(markdown: str):
+    results = dict()
+    messages = [
+        {
+            "role": "user",
+            "content": f"Please generate exactly five questions in the format 'Q: [Question]' and exactly three flashcards in the format 'F: [Flashcard]' for the following excerpt: {markdown}",
+        }
+    ]
+
+    response = openai.ChatCompletion.create(model="gpt-3.5-turbo-0613", messages=messages)
+
+    response_message = response["choices"][0]["message"]["content"]
+    # print("Raw Response:", response_message)
+
+    questions = [line.replace("Q: ", "", 1) for line in response_message.split("\n") if line.startswith("Q:")]
+    flashcards = [line.replace("F: ", "", 1) for line in response_message.split("\n") if line.startswith("F:")]
+
+    results = {"questions": questions, "flashcards": flashcards}
+
+    return results
+
+
+markdown_excerpt = "Python is an interpreted, high-level, general-purpose programming language. Created by Guido van Rossum and first released in 1991, Python's design philosophy emphasizes code readability with its notable use of significant whitespace."
+# print(questionAI(markdown_excerpt))
+
 
 def process_file(file: io.BytesIO, parent: Path):
     pdfbin = file.read()
@@ -137,7 +211,7 @@ def process_file(file: io.BytesIO, parent: Path):
             #     disclaimer = ""
 
             predictions[pages.index(compute_pages[idx * NOUGAT_BATCHSIZE + j])] = (
-                markdown_compatible(output) # + disclaimer
+                markdown_compatible(output)  # + disclaimer
             )
 
     # (parent / "pages").mkdir(parents=True, exist_ok=True)
@@ -155,84 +229,42 @@ def process_file(file: io.BytesIO, parent: Path):
         bucket.blob(str(parent / "thumb.webp")).upload_from_file(buffer, content_type="image/webp")
 
     for idx, page_num in enumerate(pages):
-        bucket.blob(
-            str(parent / "pages" / ("%02d.mmd" % (page_num + 1)))).upload_from_string(predictions[idx],
-            content_type="text/markdown"
+        bucket.blob(str(parent / "pages" / ("%02d.mmd" % (page_num + 1)))).upload_from_string(
+            predictions[idx], content_type="text/markdown"
         )
         problems_questions = questionAI(predictions[idx])
-        questions_save = problems_questions['questions']
-        flashcard_save = problems_questions['flashcards']
-        for i,question in enumerate(questions_save):
-          answer= wolfImage(question)
-          bucket.blob(
-            str(parent / "pages" / ("%02d.mmd" % (page_num + 1))/'questions'/i/)).upload_from_string(question,
-            content_type="text/markdown"
-          )
-          bucket.blob(
-            str(parent / "pages" / ("%02d.mmd" % (page_num + 1))/'questions')/i/).upload_from_string(answer,
-            content_type="image/png"
-           )
-        bucket.blob(
-            str(parent / "pages" / ("%02d.mmd" % (page_num + 1))/'flashcards')).upload_from_string(flashcard_save,
-            content_type="text/markdown"
-        )
+        questions_save = problems_questions["questions"]
+        flashcard_save = problems_questions["flashcards"]
+        for i, question in enumerate(questions_save):
+            answer = wolfImage(question)
+            # if isinstance(answer, str):
+            #     # answer = answer.encode("utf-8")
+            #     answer
+            # elif isinstance(answer, bytes):
+            #     answer = io.BytesIO(answer)
+            #     answer.seek(0)
+            # else:
+            #     print(type(answer))
+            #     answer
 
+            bucket.blob(
+                str((parent / "pages" / ("%02d.mmd" % (page_num + 1)) / "questions") / str(i))
+            ).upload_from_string(question, content_type="text/markdown")
+            bucket.blob(
+                str(parent / "pages" / ("%02d.mmd" % (page_num + 1)) / "questions" / str(i))
+            ).upload_from_string(answer)
+        bucket.blob(str(parent / "pages" / ("%02d.mmd" % (page_num + 1)) / "flashcards")).upload_from_string(
+            flashcard_save, content_type="text/markdown"
+        )
 
     final = "".join(predictions).strip()
     bucket.blob(str(parent / "doc.mmd")).upload_from_string(final, content_type="text/markdown")
 
 
-def wolfImage(question: str):
-    url = question
-    encoded_url = quote(url)
-    req = requests.get("http://api.wolframalpha.com/v1/simple?appid=" + ID +  "&i=" + encoded_url)
-    img = Image.open(io.BytesIO(req.content))
-    img.show()
-    return img
-
-def wolfShort(question:str):
-    url = question
-    encoded_url = quote(url)
-    req = requests.get("http://api.wolframalpha.com/v1/result?appid=" + ID + "&i=" + encoded_url)
-
-    return req.text
-
-def wolfSteps(question:str):
-    url = question
-    encoded_url = quote(url)
-    req = requests.get("http://api.wolframalpha.com/v2/query?appid=" + ID + "&i=" + encoded_url)
-    return req.raw
-
-def questionAI(markdown: str):
-    results = dict()
-    messages = [{"role": "user", "content": f"Please generate exactly five questions in the format 'Q: [Question]' and exactly three flashcards in the format 'F: [Flashcard]' for the following excerpt: {markdown}"}]
-
-    response = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo-0613",
-        messages=messages
-    )
-    
-    response_message = response["choices"][0]["message"]["content"]
-    print("Raw Response:", response_message)
-
-    questions = [line.replace('Q: ', '', 1) for line in response_message.split('\n') if line.startswith('Q:')]
-    flashcards = [line.replace('F: ', '', 1) for line in response_message.split('\n') if line.startswith('F:')]
-
-    results = {
-        'questions': questions,
-        'flashcards': flashcards
-    }
-
-    return results
-    
-markdown_excerpt = "Python is an interpreted, high-level, general-purpose programming language. Created by Guido van Rossum and first released in 1991, Python's design philosophy emphasizes code readability with its notable use of significant whitespace."
-print(questionAI(markdown_excerpt))
-
-
-def emailReminder(user_email:str) -> None:
+def sendTokenizedEmail(user_email: str) -> None:
     email_sender = "mybooktech0@gmail.com"
-    email_password = (os.getenv("GMAIL_PASSWORD"))
-    email_receiver= user_email
+    email_password = os.getenv("GMAIL_PASSWORD")
+    email_receiver = user_email
 
     subject = "Upload Success MyBook.Study!"
     body = """
@@ -251,6 +283,6 @@ def emailReminder(user_email:str) -> None:
 
     context = ssl.create_default_context()
 
-    with smtplib.SMTP_SSL('smtp.gmail.com', 465, context=context) as smtp:
-        smtp.login(email_sender,email_password)
-        smtp.sendmail(email_sender,email_receiver,em.as_string())
+    with smtplib.SMTP_SSL("smtp.gmail.com", 465, context=context) as smtp:
+        smtp.login(email_sender, email_password)
+        smtp.sendmail(email_sender, email_receiver, em.as_string())

@@ -1,0 +1,19 @@
+{
+  "name": "textbooks/users/RUaGBPrXXoBSNI0hiZS8PHzCwLTN/4c546dbf19cad123880d3e1cd39cfccd1b1cb71e81d45d05e82cc04b780b8c45/doc.pdf",
+  "bucket": "my-book-study.appspot.com",
+  "metageneration": 1,
+  "generation": 1699183630390,
+  "contentType": "application/pdf",
+  "storageClass": "STANDARD",
+  "contentDisposition": "inline",
+  "downloadTokens": [
+    "6e2988e6-8341-49f0-8dc5-43c0d7c4b85c"
+  ],
+  "etag": "89Cw+qWomzjoqdijetr47RmseAY",
+  "customMetadata": {},
+  "timeCreated": "2023-11-05T11:27:10.390Z",
+  "updated": "2023-11-05T11:27:10.390Z",
+  "size": 3118826,
+  "md5Hash": "Ht9EI3prDofBQ/CURqxpdQ==",
+  "crc32c": "4015394026"
+}

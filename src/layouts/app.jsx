@@ -10,7 +10,7 @@ import {
   DefaultFooter,
   PageContainer,
   ProLayout,
-  SettingDrawer,
+  SettingDrawer
 } from "@ant-design/pro-components";
 import { LoginOutlined, LogoutOutlined, SmileTwoTone } from "@ant-design/icons";
 
@@ -29,7 +29,7 @@ export default function AppLayout() {
     contentWidth: "Fluid",
     colorPrimary: "#13C2C2",
     siderMenuType: "group",
-    fixedHeader: false,
+    fixedHeader: false
   });
   const [pathname, setPathname] = useState(location.pathname);
 
@@ -60,9 +60,9 @@ export default function AppLayout() {
                   key: "logout",
                   icon: <LogoutOutlined />,
                   label: "Logout",
-                  onClick: () => auth.signOut(),
-                },
-              ],
+                  onClick: () => auth.signOut()
+                }
+              ]
             }}
           >
             {avatar}
@@ -70,7 +70,7 @@ export default function AppLayout() {
         ) : (
           <Button onClick={signInAnonymously(auth)}>Login</Button>
         );
-      },
+      }
     });
   }, [user]);
 
@@ -86,7 +86,7 @@ export default function AppLayout() {
             onClick={() => signInAnonymously(auth)}
           >
             {(collapsed && !isMobile) || "Login"}
-          </Button>,
+          </Button>
         ];
   }
 
@@ -100,7 +100,7 @@ export default function AppLayout() {
 
   return (
     <ProLayout
-      title="edtech"
+      title="mybook.study"
       logo={<SmileTwoTone twoToneColor={settings.colorPrimary} />}
       route={{ routes: appRoutes.filter((route) => route.icon) }}
       location={{ pathname }}
