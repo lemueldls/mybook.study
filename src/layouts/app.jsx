@@ -1,22 +1,8 @@
 import { useEffect, useState } from "react";
-import {
-  Outlet,
-  RouterProvider,
-  useNavigate,
-  useRoutes,
-  useOutlet,
-  useParams,
-  redirect,
-  Route,
-} from "react-router-dom";
+import { Outlet, redirect } from "react-router-dom";
 
 import { auth } from "../firebase";
-import {
-  GoogleAuthProvider,
-  signInAnonymously,
-  signInWithPopup,
-  signInWithRedirect,
-} from "firebase/auth";
+import { signInAnonymously } from "firebase/auth";
 import { useAuthStatus } from "../hooks/auth";
 
 import { notification, Button, Spin, Dropdown } from "antd";
@@ -53,17 +39,7 @@ export default function AppLayout() {
   useEffect(() => auth.onAuthStateChanged(setUser), []);
 
   useEffect(() => {
-    if (!checkingStatus && !loggedIn) {
-      signInAnonymously(auth);
-      // const provider = new GoogleAuthProvider();
-
-      // signInWithRedirect(auth, provider).catch((error) => {
-      //   notificationApi.error({
-      //     message: "Login failed",
-      //     description: error.message
-      //   });
-      // });
-    }
+    if (!checkingStatus && !loggedIn) router.navigate("/login");
   }, [loggedIn, checkingStatus, notificationApi]);
 
   useEffect(() => void router.navigate(pathname), [pathname]);
