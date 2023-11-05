@@ -1,3 +1,6 @@
+### Credentials Gmail API ###
+./firebase/functions/credentials.json
+
 ### Firebase ###
 .idea
 **/node_modules/*

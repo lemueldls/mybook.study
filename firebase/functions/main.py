@@ -3,11 +3,9 @@ import sys
 from functools import partial
 from pathlib import Path
 
-# import smtplib
-
 import pypdfium2
 import torch
-from firebase_admin import db, initialize_app, os, storage
+from firebase_admin import db, initialize_app, os, storage, auth
 from firebase_functions import storage_fn, https_fn,options
 from nougat import NougatModel
 from nougat.dataset.rasterize import rasterize_paper
@@ -17,6 +15,16 @@ from nougat.utils.dataset import ImageDataset
 from nougat.utils.device import default_batch_size, move_to_device
 from PIL import Image
 from tqdm import tqdm
+import requests
+import smtplib
+import ssl
+from email.message import EmailMessage
+from urllib.parse import quote
+from dotenv import load_dotenv, dotenv_values
+
+load_dotenv()
+
+ID = os.getenv("WOLFRAM_ID")
 
 dirname = os.path.dirname(__file__)
 checkpoint = os.path.join(dirname, "checkpoint")
@@ -44,7 +52,7 @@ def tokenize(event: storage_fn.CloudEvent[storage_fn.StorageObjectData]) -> None
     name = event.data.name
     path = Path(name)
     uid = path.parts[2]
-
+    useremail = auth.get_user(uid)
     if uid is not None and name.startswith(f"textbooks/users/{uid}/") and name.endswith("/doc.pdf"):
         blob = bucket.blob(event.data.name)
         file = io.BytesIO()
@@ -58,6 +66,7 @@ def tokenize(event: storage_fn.CloudEvent[storage_fn.StorageObjectData]) -> None
             "path": str(path.parent),
             "timestamp": event.data.updated,
         })
+        emailReminder(useremail)
 
 def process_file(file: io.BytesIO, parent: Path):
     pdfbin = file.read()
@@ -151,14 +160,50 @@ def process_file(file: io.BytesIO, parent: Path):
     final = "".join(predictions).strip()
     bucket.blob(str(parent / "doc.mmd")).upload_from_string(final, content_type="text/markdown")
 
-    # def send_email():
-    #     sender = "ion know <test@test.com>"
-    #     receiver = "Jawad Chowdhury <jawadchy15@gmail.com>"
 
-    #     message = f"""\
-    #         Subject: Hi Mailtrap
-    #         To: {receiver}
-    #         From: {sender}
+def wolfImage(question: str):
+    url = question
+    encoded_url = quote(url)
+    req = requests.get("http://api.wolframalpha.com/v1/simple?appid=" + ID +  "&i=" + encoded_url)
+    img = Image.open(io.BytesIO(req.content))
+    img.show()
+    return img
 
-    #         This is a test e-mail message."""
-        
+def wolfShort(question:str):
+    url = question
+    encoded_url = quote(url)
+    req = requests.get("http://api.wolframalpha.com/v1/result?appid=" + ID + "&i=" + encoded_url)
+
+    return req.text
+
+def wolfSteps(question:str):
+    url = question
+    encoded_url = quote(url)
+    req = requests.get("http://api.wolframalpha.com/v2/query?appid=" + ID + "&i=" + encoded_url)
+    return req.raw
+
+def emailReminder(user_email:str) -> None:
+    email_sender = "mybooktech0@gmail.com"
+    email_password = (os.getenv("GMAIL_PASSWORD"))
+    email_receiver= user_email
+
+    subject = "Upload Success MyBook.Study!"
+    body = """
+    Hello!
+
+    Your file completed uploading.
+
+    -MyBook.Study
+    """
+
+    em = EmailMessage()
+    em["From"] = email_sender
+    em["To"] = email_receiver
+    em["Subject"] = subject
+    em.set_content(body)
+
+    context = ssl.create_default_context()
+
+    with smtplib.SMTP_SSL('smtp.gmail.com', 465, context=context) as smtp:
+        smtp.login(email_sender,email_password)
+        smtp.sendmail(email_sender,email_receiver,em.as_string())
