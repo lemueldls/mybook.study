@@ -1,16 +1,14 @@
 {
   "name": "textbooks/users/RUaGBPrXXoBSNI0hiZS8PHzCwLTN/67828e67043bba8378f55b740353980e0536b82126a6e4d1554d233de00369a8/pages/01.mmd",
   "bucket": "my-book-study.appspot.com",
-  "metageneration": 2,
-  "generation": 1699191306174,
+  "metageneration": 1,
+  "generation": 1699195323288,
   "contentType": "text/markdown",
   "storageClass": "STANDARD",
-  "downloadTokens": [
-    "4c65a33b-8aa1-455f-bf2a-d69ecb7ebad3"
-  ],
-  "etag": "z/gEFDJuyd5KcKZgjYt1ntmqI8g",
-  "timeCreated": "2023-11-05T13:35:06.174Z",
-  "updated": "2023-11-05T13:38:53.495Z",
+  "downloadTokens": [],
+  "etag": "9g6khxW2+i2BpPo+GklQRSopiNo",
+  "timeCreated": "2023-11-05T14:42:03.288Z",
+  "updated": "2023-11-05T14:42:03.288Z",
   "size": 2969,
   "md5Hash": "Qj1KGaegbDtG1VYjg9feCw==",
   "crc32c": "934342068"

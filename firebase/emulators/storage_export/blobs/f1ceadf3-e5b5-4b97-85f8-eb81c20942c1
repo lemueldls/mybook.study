@@ -1,0 +1,47 @@
+**EXAMPLE 5**: Find an equation of the plane that passes through the points \(P(1,3,2)\), \(Q(3,-1,6)\), and \(R(5,2,0)\).
+
+**SOLUTION**: The vectors \(\mathbf{a}\) and \(\mathbf{b}\) corresponding to \(\overrightarrow{PQ}\) and \(\overrightarrow{PR}\) are
+
+\[\mathbf{a}=\langle 2_{i}-4_{i}.4\rangle\hskip 28.452756pt\mathbf{b}=\langle 4_{i} -1_{i},-2\rangle\]
+
+Since both \(\mathbf{a}\) and \(\mathbf{b}\) lie in the plane, their cross product \(\mathbf{a}\times\mathbf{b}\) is orthogonal to the plane and can be taken as the normal vector. Thus
+
+\[\begin{array}{c|cc|c}\mathbf{n}=\mathbf{a}\times\mathbf{b}=\left|\begin{array} []{ccc}\mathbf{i}&\mathbf{i}&\mathbf{i}&\mathbf{k}\\ 2&-4_{i}&4_{i}\\ 4&-1&-2\end{array}\right|=\langle 2\mathbf{i}+20\mathbf{j}+\mathrm{i}4 \mathbf{k}\\ \end{array}\]
+
+With the point \(P(1,3;2)\) and the normal vector \(\mathbf{n}\), an equation of the plane is
+
+\[\begin{array}{c|cc|c}\mathbf{i}2(x-\mathrm{i})+20(\mathbf{y}-3)+14(z-2)=0 \\ \end{array}\]
+
+for
+
+**EXAMPLE 6**: Find the point at which the line with parametric equations \(x=2+3t\), \(y=-4t\), \(z=5+t\) intersects the plane \(4x+5y-2z=18\).
+
+**SOLUTION**: We substitute the expressions for \(x,y\), and \(z\) from the parametric equations into the equation of the plane:
+
+\[4(2+3t)+5(-4t)-2(5+t)=18\]
+
+This simplifies to \(-10t=20\), so \(t=-2\). Therefore the point of intersection occurs when the parameter value is \(t=-2\). Then \(x=2+3(-2)=-4,y=-4(-2)=8\); \(z=5-2=3\) and so the point of intersection is \((-4,8,3)\).
+
+Two planes are **parallel** if their normal vectors are parallel. For instance, the planes \(x+2y-3z=4\) and \(2x+4y-6z=3\) are parallel because their normal vectors are \(\mathbf{n}_{i}=\langle 1,2,-3\rangle\) and \(\mathbf{n}_{2}=\langle 2,4,-6\rangle\) and \(\mathbf{n}_{2}=2\mathbf{n}_{5}\). If two planes are not parallel, then they intersect in a straight line and the angle between the two planes is defined as the acute angle between their normal vectors (see angle \(\theta\) in Figure 9).
+
+**EXAMPLE 7**:
+
+(a) Find the angle between the planes \(x+y+z=1\) and \(x-2y+3z=1\).
+
+(b) Find symmetric equations for the line of intersection \(L\) of these two planes.
+
+**SOLUTION**:
+
+(a) The normal vectors of these planes are
+
+\[\mathbf{n}_{1}=\langle 1,1,1\rangle\hskip 28.452756pt\mathbf{n}_{2}=\langle 1,-2,3\rangle\]
+
+and so, if \(\theta\) is the angle between the planes, Corollary 12.3.6 gives
+
+\[\begin{array}{c|cc|cc}\cos\theta=\frac{\mathbf{n}_{1}\ ^{*}\ \mathbf{n}_{2}}{ \left|\mathbf{n}_{1}\right|\left|\mathbf{n}_{2}\right|}=\frac{1(1)+1(-2)+1(3)}{ \sqrt{1+1+1}\ \sqrt{1+4+9}}=\frac{2}{\sqrt{42}}\\ \end{array}\]
+
+\[\begin{array}{c|cc}\theta=\cos^{-1}\left(\frac{2}{\sqrt{42}}\right)\approx 7 2^{\circ}.\end{array}\]
+
+(b) We first need to find a point on \(L\). For instance, we can find the point where the line intersects the \(xy\)-plane by setting \(z=0\) in the equations of both planes. This gives the
+
+[MISSING_PAGE_POST]

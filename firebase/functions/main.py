@@ -73,7 +73,6 @@ def tokenize(req: https_fn.Request) -> https_fn.Response:
         {
             "name": parent.name,
             "path": str(parent),
-            "timestamp": db.ServerValue.TIMESTAMP,
         }
     )
 
@@ -253,9 +252,10 @@ def process_file(file: io.BytesIO, parent: Path):
             bucket.blob(
                 str(parent / "pages" / ("%02d.mmd" % (page_num + 1)) / "questions" / str(i))
             ).upload_from_string(answer)
-        bucket.blob(str(parent / "pages" / ("%02d.mmd" % (page_num + 1)) / "flashcards")).upload_from_string(
-            flashcard_save, content_type="text/markdown"
-        )
+        for i, flashcard in enumerate(flashcard_save):
+            bucket.blob(
+                str((parent / "pages" / ("%02d.mmd" % (page_num + 1)) / "flashcards") / str(i))
+            ).upload_from_string(flashcard, content_type="text/markdown")
 
     final = "".join(predictions).strip()
     bucket.blob(str(parent / "doc.mmd")).upload_from_string(final, content_type="text/markdown")

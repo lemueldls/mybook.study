@@ -17,20 +17,42 @@ import {
   Tooltip,
   Upload,
   Spin,
-  Input
+  Input,
+  Divider,
+  Empty
 } from "antd";
 import { BookTwoTone } from "@ant-design/icons";
 
 import BookPreview from "../components/book-preview";
 
 export default function TextbooksPage() {
-  const [books, setBooks] = useState();
+  const [userBooks, setUserBooks] = useState();
+  const [globalBooks, setGlobalBooks] = useState();
   const [notificationApi, contextHolder] = notification.useNotification();
 
   const { token } = theme.useToken();
 
   useEffect(() => {
-    async function fetchBooks() {
+    async function fetchUserBooks() {
+      const { uid } = auth.currentUser;
+
+      const bookRef = ref(storage, `textbooks/users/${uid}`);
+      const { prefixes } = await list(bookRef);
+
+      return await Promise.all(
+        prefixes.map(async ({ name }) => {
+          const thumbRef = ref(
+            storage,
+            `textbooks/users/${uid}/${name}/thumb.webp`
+          );
+          const thumb = await getDownloadURL(thumbRef);
+
+          return { hash: name, title: "[TEXTBOOK]", thumb };
+        })
+      );
+    }
+
+    async function fetchGlobalBooks() {
       const bookRef = ref(storage, "textbooks/global");
       const { prefixes } = await list(bookRef);
 
@@ -44,7 +66,8 @@ export default function TextbooksPage() {
       );
     }
 
-    fetchBooks().then(setBooks);
+    fetchUserBooks().then(setUserBooks);
+    fetchGlobalBooks().then(setGlobalBooks);
   }, []);
 
   async function upload({ file, onProgress, onSuccess, onError }) {
@@ -83,7 +106,7 @@ export default function TextbooksPage() {
   }
 
   return (
-    <>
+    <div>
       {contextHolder}
 
       <Card
@@ -97,7 +120,7 @@ export default function TextbooksPage() {
           />
         }
       >
-        {books ? (
+        {userBooks ? (
           <div className="flex gap-4 flex-wrap">
             <Upload.Dragger
               multiple={true}
@@ -118,10 +141,14 @@ export default function TextbooksPage() {
               preview={{
                 toolbarRender: () => <></>,
                 imageRender: (thumb, { current }) =>
-                  books[current] ? <BookPreview book={books[current]} /> : thumb
+                  userBooks[current] ? (
+                    <BookPreview book={userBooks[current]} />
+                  ) : (
+                    thumb
+                  )
               }}
             >
-              {books.map((book) => (
+              {userBooks.map((book) => (
                 <Tooltip key={book.hash} title={book.title}>
                   <Card
                     className="overflow-hidden w-68 h-88 aspect-[8.5/11]"
@@ -145,6 +172,53 @@ export default function TextbooksPage() {
           </div>
         )}
       </Card>
-    </>
+
+      <Divider />
+
+      <Card title="All Textbooks">
+        {globalBooks ? (
+          <div className="flex gap-4 flex-wrap">
+            <Image.PreviewGroup
+              preview={{
+                toolbarRender: () => <></>,
+                imageRender: (thumb, { current }) =>
+                  globalBooks[current] ? (
+                    <BookPreview book={globalBooks[current]} />
+                  ) : (
+                    thumb
+                  )
+              }}
+            >
+              {globalBooks.length === 0 ? (
+                <div className="w-full flex items-center justify-center">
+                  <Empty description="No global books" />
+                </div>
+              ) : (
+                globalBooks.map((book) => (
+                  <Tooltip key={book.hash} title={book.title}>
+                    <Card
+                      className="overflow-hidden w-68 h-88 aspect-[8.5/11]"
+                      cover={
+                        <Image
+                          src={book.thumb}
+                          alt={book.title}
+                          wrapperClassName="relative w-68 h-88"
+                          className="absolute top-[calc(50%-11rem)] left-[calc(50%-8.5rem)]"
+                        />
+                      }
+                      hoverable
+                    />
+                  </Tooltip>
+                ))
+              )}
+            </Image.PreviewGroup>
+          </div>
+        ) : (
+          <div className="flex w-full h-full items-center justify-center">
+            <Spin />
+          </div>
+        )}
+      </Card>
+    </div>
   );
 }
