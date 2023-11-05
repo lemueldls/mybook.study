@@ -27,7 +27,7 @@ export default function AppLayout() {
     splitMenus: false,
     navTheme: "light",
     contentWidth: "Fluid",
-    colorPrimary: "#13C2C2",
+    colorPrimary: "#1890ff",
     siderMenuType: "group",
     fixedHeader: false
   });
