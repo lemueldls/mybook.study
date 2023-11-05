@@ -4,14 +4,15 @@ import { PropTypes } from "prop-types";
 import { storage } from "../firebase";
 import { ref, getBytes } from "firebase/storage";
 
-import { Card, Image, Typography } from "antd";
+import { Button, Card, Image, Typography } from "antd";
 import { ProCard, ProDescriptions } from "@ant-design/pro-components";
+import { Link } from "react-router-dom";
 
 export default function BookPreview({ book }) {
   const [html, setHtml] = useState();
 
   useEffect(() => {
-    const textRef = ref(storage, `textbooks/global/${book.hash}/doc.mmd`);
+    const textRef = ref(storage, `${book.path}/doc.mmd`);
     getBytes(textRef).then((bytes) => {
       const text = new TextDecoder("utf-8").decode(bytes);
 
@@ -19,7 +20,7 @@ export default function BookPreview({ book }) {
       const html = render(text);
       setHtml(html);
     });
-  }, [book.hash]);
+  }, [book.path]);
 
   return (
     <ProCard className="w-200 h-125" split="vertical">
@@ -39,11 +40,17 @@ export default function BookPreview({ book }) {
         // title={book.title}
         headerBordered
         className="overflow-hidden h-full"
+        actions={
+          <Link to={`/app/flashcards?book=${btoa(book.path)}`}>
+            <Button type="primary">Learn</Button>
+          </Link>
+        }
       >
-        <div
-          className="overflow-auto h-full"
+        MATH!!
+        {/* <div
+          className="overflow-auto h-[calc(100%-1rem)]"
           dangerouslySetInnerHTML={{ __html: html }}
-        />
+        /> */}
       </ProCard>
     </ProCard>
   );

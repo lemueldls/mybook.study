@@ -41,13 +41,13 @@ export default function TextbooksPage() {
 
       return await Promise.all(
         prefixes.map(async ({ name }) => {
-          const thumbRef = ref(
-            storage,
-            `textbooks/users/${uid}/${name}/thumb.webp`
-          );
+          const path = `textbooks/users/${uid}/${name}`;
+          const thumbRef = ref(storage, `${path}/thumb.webp`);
           const thumb = await getDownloadURL(thumbRef);
 
-          return { hash: name, title: "[TEXTBOOK]", thumb };
+          const title = "[TEXTBOOK]";
+
+          return { name, path, title, thumb };
         })
       );
     }
@@ -58,10 +58,13 @@ export default function TextbooksPage() {
 
       return await Promise.all(
         prefixes.map(async ({ name }) => {
-          const thumbRef = ref(storage, `textbooks/global/${name}/thumb.webp`);
+          const path = `textbooks/global/${name}`;
+          const thumbRef = ref(storage, `${path}/thumb.webp`);
           const thumb = await getDownloadURL(thumbRef);
 
-          return { hash: name, title: "[TEXTBOOK]", thumb };
+          const title = "[TEXTBOOK]";
+
+          return { name, path, title, thumb };
         })
       );
     }
@@ -149,7 +152,7 @@ export default function TextbooksPage() {
               }}
             >
               {userBooks.map((book) => (
-                <Tooltip key={book.hash} title={book.title}>
+                <Tooltip key={book.path} title={book.title}>
                   <Card
                     className="overflow-hidden w-68 h-88 aspect-[8.5/11]"
                     cover={
@@ -195,7 +198,7 @@ export default function TextbooksPage() {
                 </div>
               ) : (
                 globalBooks.map((book) => (
-                  <Tooltip key={book.hash} title={book.title}>
+                  <Tooltip key={book.path} title={book.title}>
                     <Card
                       className="overflow-hidden w-68 h-88 aspect-[8.5/11]"
                       cover={

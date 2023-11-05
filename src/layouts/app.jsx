@@ -110,7 +110,10 @@ export default function AppLayout() {
       footerRender={footerRender}
       {...settings}
     >
-      <PageContainer className="h-screen">
+      <PageContainer
+        className="h-screen"
+        title={appRoutes.find((route) => route.path === pathname)?.name}
+      >
         {contextHolder}
         {checkingStatus ? <Spin /> : loggedIn ? <Outlet /> : <></>}
       </PageContainer>

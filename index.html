@@ -4,7 +4,15 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Vite + React</title>
+    <title>mybook.study</title>
+    <script>
+      const script = document.createElement("script");
+      script.src =
+        "https://cdn.jsdelivr.net/npm/mathpix-markdown-it@1.2.13/es5/bundle.js";
+      script.onload = () => window.loadMathJax();
+
+      document.head.append(script);
+    </script>
   </head>
   <body>
     <div id="root"></div>
