@@ -3,6 +3,7 @@ import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import { router } from "../router";
 import { PageContainer } from "@ant-design/pro-components";
 import { Button } from "antd";
+import { GoogleOutlined } from "@ant-design/icons";
 
 export default function LoginPage() {
   async function login() {
@@ -16,7 +17,16 @@ export default function LoginPage() {
 
   return (
     <PageContainer>
-      <Button onClick={login}>Login</Button>
+      <div className="flex justify-center items-center w-full h-100vh">
+        <Button
+          type="primary"
+          icon={<GoogleOutlined />}
+          onClick={login}
+          size="large"
+        >
+          Sign in with Google
+        </Button>
+      </div>
     </PageContainer>
   );
 }
