@@ -39,6 +39,6 @@
     "stylelint-config-prettier": "^9.0.5",
     "stylelint-config-standard-scss": "^11.1.0",
     "unocss": "^0.57.2",
-    "vite": "^4.4.5"
+    "vite": "^4.5.1"
   }
 }
